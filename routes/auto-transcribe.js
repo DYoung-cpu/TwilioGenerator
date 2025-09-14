@@ -102,8 +102,8 @@ async function autoTranscribe(recordingSid, recordingUrl) {
     }
 
     if (transcript) {
-      // Store transcription
-      transcriptionStore[recordingSid] = {
+      // Store transcription with proper structure
+      const transcriptionData = {
         text: transcript.text,
         utterances: transcript.utterances,
         entities: transcript.entities,
@@ -112,8 +112,17 @@ async function autoTranscribe(recordingSid, recordingUrl) {
         completedAt: new Date()
       };
 
-      // Save to file for persistence
-      saveTranscriptions();
+      transcriptionStore[recordingSid] = transcriptionData;
+
+      // Save to Supabase with proper field mapping
+      await transcriptionService.saveTranscription({
+        callSid: recordingSid,  // Using recordingSid as callSid since we don't have actual callSid
+        recordingSid: recordingSid,
+        transcript: transcript.text,  // Save the text as transcript
+        transcriptStatus: 'completed',
+        status: 'completed',
+        duration: transcript.audio_duration
+      });
 
       console.log(`✅ Transcription complete for ${recordingSid}`);
 
@@ -131,8 +140,19 @@ async function autoTranscribe(recordingSid, recordingUrl) {
         if (processedData) {
           // Store processed data
           transcriptionStore[recordingSid].processedData = processedData;
-          await transcriptionService.saveTranscription(transcriptionStore[recordingSid]);
-          await saveTranscriptions();
+
+          // Update Supabase with processed data
+          await transcriptionService.saveTranscription({
+            callSid: recordingSid,
+            recordingSid: recordingSid,
+            transcript: transcript.text,
+            transcriptStatus: 'completed',
+            status: 'completed',
+            duration: transcript.audio_duration,
+            customerName: processedData.extracted_data?.borrower_information?.full_name || null,
+            customerEmail: processedData.extracted_data?.borrower_information?.email_address || null,
+            customerPhone: processedData.extracted_data?.borrower_information?.phone_number || null
+          });
 
           // Send email to loan officer
           const loanOfficerEmail = process.env.LOAN_OFFICER_EMAIL || 'tony@lendwisemortgage.com';
