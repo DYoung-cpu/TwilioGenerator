@@ -2,9 +2,13 @@ const express = require('express');
 const router = express.Router();
 const axios = require('axios');
 const { twilioClient } = require('../config/twilio');
+const { storeTranscription } = require('./auto-transcribe');
 
 // AssemblyAI API configuration
 const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
+
+// Map transcript IDs to recording SIDs
+const transcriptToRecordingMap = {};
 
 // Transcribe a Twilio recording
 router.post('/transcribe/:recordingSid', async (req, res) => {
@@ -64,6 +68,9 @@ router.post('/transcribe/:recordingSid', async (req, res) => {
 
     const transcriptId = transcriptResponse.data.id;
 
+    // Store mapping
+    transcriptToRecordingMap[transcriptId] = recordingSid;
+
     // Return the transcript ID for polling
     res.json({
       success: true,
@@ -81,6 +88,7 @@ router.post('/transcribe/:recordingSid', async (req, res) => {
 router.get('/transcribe/status/:transcriptId', async (req, res) => {
   try {
     const { transcriptId } = req.params;
+    const recordingSid = transcriptToRecordingMap[transcriptId]; // Get from mapping
 
     const response = await axios.get(
       `https://api.assemblyai.com/v2/transcript/${transcriptId}`,
@@ -96,12 +104,26 @@ router.get('/transcribe/status/:transcriptId', async (req, res) => {
     if (transcript.status === 'completed') {
       // Format the response with speakers and timestamps
       const formattedTranscript = formatTranscript(transcript);
+      const insights = extractInsights(transcript);
+
+      // Store the transcription if we have a recordingSid
+      if (recordingSid) {
+        storeTranscription(recordingSid, {
+          text: transcript.text,
+          utterances: transcript.utterances,
+          entities: transcript.entities,
+          sentiment: transcript.sentiment_analysis_results,
+          chapters: transcript.chapters,
+          completedAt: new Date(),
+          insights: insights
+        });
+      }
 
       res.json({
         success: true,
         status: 'completed',
         transcript: formattedTranscript,
-        insights: extractInsights(transcript)
+        insights: insights
       });
     } else if (transcript.status === 'error') {
       res.json({
@@ -255,5 +277,34 @@ function extractInsights(transcript) {
 
   return insights;
 }
+
+// Get transcription with AI data for a recording
+router.get('/:recordingSid/full', (req, res) => {
+  try {
+    const { recordingSid } = req.params;
+    const { hasTranscription, getTranscription } = require('./auto-transcribe');
+
+    if (hasTranscription(recordingSid)) {
+      const transcriptionData = getTranscription(recordingSid);
+      res.json({
+        success: true,
+        hasTranscription: true,
+        transcription: transcriptionData
+      });
+    } else {
+      res.json({
+        success: true,
+        hasTranscription: false,
+        transcription: null
+      });
+    }
+  } catch (error) {
+    console.error('Error getting full transcription:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get transcription data'
+    });
+  }
+});
 
 module.exports = router;

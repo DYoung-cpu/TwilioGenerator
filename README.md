@@ -41,7 +41,7 @@ npm run dev
 ```
 
 ### Step 4: Open Dashboard
-Navigate to: http://localhost:3003
+Navigate to: http://localhost:3004
 
 ## Project Structure
 
@@ -80,7 +80,7 @@ TwilioGenerator/
 
 ## Testing
 
-1. Open the dashboard at http://localhost:3003
+1. Open the dashboard at http://localhost:3004
 2. Enter customer name and phone number
 3. Click "Start Call" to initiate
 4. After call completes, click "Transcribe Recording"
@@ -91,7 +91,7 @@ TwilioGenerator/
 ### Recordings not showing?
 - Check browser console for errors
 - Verify Twilio credentials in `.env`
-- Ensure server is running on port 3003
+- Ensure server is running on port 3004
 
 ### Transcription not working?
 - Verify AssemblyAI API key in `.env`

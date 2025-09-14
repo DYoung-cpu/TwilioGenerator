@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const { twilioClient, loanOfficers } = require('../config/twilio');
+const { autoTranscribe, getTranscription, hasTranscription } = require('./auto-transcribe');
+
+// In-memory storage for call data (in production, use a database)
+const callDataStore = {};
 
 // Route to initiate a call to loan officer
 router.post('/call/:loanOfficerId', async (req, res) => {
   try {
     const { loanOfficerId } = req.params;
-    const { customerPhone, customerName } = req.body;
+    const { customerPhone, customerName, customerEmail } = req.body;
 
     const loanOfficer = loanOfficers[loanOfficerId];
     if (!loanOfficer) {
@@ -31,6 +35,16 @@ router.post('/call/:loanOfficerId', async (req, res) => {
       statusCallback: `${process.env.BASE_URL}/api/twilio/call-status`,
       statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed']
     });
+
+    // Store customer data for this call
+    callDataStore[call.sid] = {
+      customerName: customerName || 'Unknown',
+      customerPhone: customerPhone,
+      customerEmail: customerEmail || '',
+      loanOfficer: loanOfficer.name,
+      loanOfficerPhone: loanOfficer.phoneNumber,
+      startTime: new Date().toISOString()
+    };
 
     res.json({
       success: true,
@@ -158,6 +172,12 @@ router.get('/recordings', async (req, res) => {
         console.log('Could not fetch call details for', recording.callSid);
       }
 
+      // Get customer data if available
+      const customerData = callDataStore[recording.callSid] || {};
+
+      // Check if transcription is available
+      const transcription = getTranscription(recording.sid);
+
       return {
         sid: recording.sid,
         callSid: recording.callSid,
@@ -165,7 +185,15 @@ router.get('/recordings', async (req, res) => {
         dateCreated: recording.dateCreated,
         status: recording.status,
         mediaUrl: `https://api.twilio.com${recording.uri.replace('.json', '.mp3')}`,
-        callDetails: callDetails
+        callDetails: callDetails,
+        customerName: customerData.customerName && customerData.customerName !== 'Unknown' ? customerData.customerName : '',
+        customerEmail: customerData.customerEmail || '',
+        customerPhone: customerData.customerPhone || callDetails?.from || '',
+        loanOfficer: customerData.loanOfficer || 'Tony Nasim',
+        hasTranscription: !!transcription,
+        transcription: transcription,
+        processedData: transcription?.processedData || null,
+        emailSent: transcription?.processedData ? true : false
       };
     }));
 
@@ -230,8 +258,8 @@ router.post('/call-status', (req, res) => {
   res.status(200).send('OK');
 });
 
-// Handle recording status
-router.post('/recording-status', (req, res) => {
+// Handle recording status and auto-transcribe
+router.post('/recording-status', async (req, res) => {
   const { RecordingSid, RecordingUrl, RecordingStatus, RecordingDuration, CallSid } = req.body;
 
   console.log(`🎙️ Recording Status - SID: ${RecordingSid}`);
@@ -239,6 +267,15 @@ router.post('/recording-status', (req, res) => {
   console.log(`   Status: ${RecordingStatus}`);
   console.log(`   Duration: ${RecordingDuration}s`);
   console.log(`   URL: ${RecordingUrl}`);
+
+  // Auto-transcribe when recording is completed
+  if (RecordingStatus === 'completed' && RecordingUrl) {
+    console.log(`🚀 Starting auto-transcription for ${RecordingSid}`);
+    // Start transcription in background (don't wait)
+    autoTranscribe(RecordingSid, RecordingUrl).catch(err => {
+      console.error('Auto-transcribe failed:', err);
+    });
+  }
 
   res.status(200).send('OK');
 });
@@ -266,6 +303,56 @@ router.get('/loan-officer/:loanOfficerId/status', (req, res) => {
     available: loanOfficer.available && isBusinessHours,
     businessHours: loanOfficer.businessHours
   });
+});
+
+// Get call status endpoint for frontend
+router.get('/call/:callSid/status', async (req, res) => {
+  const { callSid } = req.params;
+
+  try {
+    // Check if we have call data stored
+    const callData = callDataStore[callSid];
+
+    if (callData) {
+      res.json({
+        success: true,
+        callSid: callSid,
+        status: 'completed',
+        customerName: callData.customerName,
+        customerPhone: callData.customerPhone,
+        customerEmail: callData.customerEmail,
+        loanOfficer: callData.loanOfficer
+      });
+    } else {
+      // Try to fetch from Twilio
+      if (twilioClient) {
+        try {
+          const call = await twilioClient.calls(callSid).fetch();
+          res.json({
+            success: true,
+            callSid: callSid,
+            status: call.status,
+            from: call.from,
+            to: call.to,
+            duration: call.duration
+          });
+        } catch (error) {
+          res.json({
+            success: false,
+            error: 'Call not found'
+          });
+        }
+      } else {
+        res.json({
+          success: false,
+          error: 'Call data not available'
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error fetching call status:', error);
+    res.status(500).json({ error: 'Failed to fetch call status' });
+  }
 });
 
 module.exports = router;

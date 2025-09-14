@@ -1,0 +1,697 @@
+{
+  "RE205a04bdd30f55f9d0d8eb44caaa2299": {
+    "text": "Hi Tony, it's David. Just checking on you to see how everything went. Please make sure we have a scheduled appointment tomorrow at 10:30 in the afternoon. Just send me a Google Calendar link and we'll. We'll take care of that. And also I want to know the rate on a 30 year fix and a 15 year fix and a 20 year fix. Give me those incrementally. Up, down, left and right. Then email me a confirmation.",
+    "utterances": [
+      {
+        "speaker": "A",
+        "text": "Hi Tony, it's David. Just checking on you to see how everything went. Please make sure we have a scheduled appointment tomorrow at 10:30 in the afternoon. Just send me a Google Calendar link and we'll. We'll take care of that. And also I want to know the rate on a 30 year fix and a 15 year fix and a 20 year fix. Give me those incrementally. Up, down, left and right. Then email me a confirmation.",
+        "confidence": 0.9892347,
+        "start": 5840,
+        "end": 32460,
+        "words": [
+          {
+            "text": "Hi",
+            "start": 5840,
+            "end": 6000,
+            "confidence": 0.97802734,
+            "speaker": "A"
+          },
+          {
+            "text": "Tony,",
+            "start": 6000,
+            "end": 6360,
+            "confidence": 0.98502606,
+            "speaker": "A"
+          },
+          {
+            "text": "it's",
+            "start": 6360,
+            "end": 6560,
+            "confidence": 0.9765625,
+            "speaker": "A"
+          },
+          {
+            "text": "David.",
+            "start": 6560,
+            "end": 6960,
+            "confidence": 0.9255371,
+            "speaker": "A"
+          },
+          {
+            "text": "Just",
+            "start": 7600,
+            "end": 7960,
+            "confidence": 0.99853516,
+            "speaker": "A"
+          },
+          {
+            "text": "checking",
+            "start": 7960,
+            "end": 8360,
+            "confidence": 0.9998372,
+            "speaker": "A"
+          },
+          {
+            "text": "on",
+            "start": 8360,
+            "end": 8520,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "you",
+            "start": 8520,
+            "end": 8680,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "to",
+            "start": 8680,
+            "end": 8840,
+            "confidence": 0.99853516,
+            "speaker": "A"
+          },
+          {
+            "text": "see",
+            "start": 8840,
+            "end": 9000,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "how",
+            "start": 9000,
+            "end": 9280,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "everything",
+            "start": 9520,
+            "end": 9920,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "went.",
+            "start": 10000,
+            "end": 10400,
+            "confidence": 0.9980469,
+            "speaker": "A"
+          },
+          {
+            "text": "Please",
+            "start": 11200,
+            "end": 11600,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "make",
+            "start": 11840,
+            "end": 12120,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "sure",
+            "start": 12120,
+            "end": 12320,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "we",
+            "start": 12320,
+            "end": 12520,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "have",
+            "start": 12520,
+            "end": 12680,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "a",
+            "start": 12680,
+            "end": 12840,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "scheduled",
+            "start": 12840,
+            "end": 13280,
+            "confidence": 0.9986572,
+            "speaker": "A"
+          },
+          {
+            "text": "appointment",
+            "start": 13280,
+            "end": 13920,
+            "confidence": 0.9505208,
+            "speaker": "A"
+          },
+          {
+            "text": "tomorrow",
+            "start": 14480,
+            "end": 15200,
+            "confidence": 0.9700928,
+            "speaker": "A"
+          },
+          {
+            "text": "at",
+            "start": 15280,
+            "end": 15640,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "10:30",
+            "start": 15640,
+            "end": 16399,
+            "confidence": 0.99438,
+            "speaker": "A"
+          },
+          {
+            "text": "in",
+            "start": 16640,
+            "end": 16920,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "the",
+            "start": 16920,
+            "end": 17080,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "afternoon.",
+            "start": 17080,
+            "end": 17760,
+            "confidence": 0.93847656,
+            "speaker": "A"
+          },
+          {
+            "text": "Just",
+            "start": 19280,
+            "end": 19600,
+            "confidence": 0.9975586,
+            "speaker": "A"
+          },
+          {
+            "text": "send",
+            "start": 19600,
+            "end": 19840,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "me",
+            "start": 19840,
+            "end": 19960,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "a",
+            "start": 19960,
+            "end": 20120,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "Google",
+            "start": 20120,
+            "end": 20480,
+            "confidence": 0.9996745,
+            "speaker": "A"
+          },
+          {
+            "text": "Calendar",
+            "start": 20480,
+            "end": 20920,
+            "confidence": 0.9998372,
+            "speaker": "A"
+          },
+          {
+            "text": "link",
+            "start": 20920,
+            "end": 21120,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "and",
+            "start": 21120,
+            "end": 21240,
+            "confidence": 0.99560547,
+            "speaker": "A"
+          },
+          {
+            "text": "we'll.",
+            "start": 21240,
+            "end": 21480,
+            "confidence": 0.84798175,
+            "speaker": "A"
+          },
+          {
+            "text": "We'll",
+            "start": 21480,
+            "end": 21720,
+            "confidence": 0.84277344,
+            "speaker": "A"
+          },
+          {
+            "text": "take",
+            "start": 21720,
+            "end": 21880,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "care",
+            "start": 21880,
+            "end": 22040,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "of",
+            "start": 22040,
+            "end": 22200,
+            "confidence": 0.9975586,
+            "speaker": "A"
+          },
+          {
+            "text": "that.",
+            "start": 22200,
+            "end": 22480,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "And",
+            "start": 22560,
+            "end": 22880,
+            "confidence": 0.99365234,
+            "speaker": "A"
+          },
+          {
+            "text": "also",
+            "start": 22880,
+            "end": 23200,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "I",
+            "start": 23280,
+            "end": 23600,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "want",
+            "start": 23600,
+            "end": 23800,
+            "confidence": 0.95458984,
+            "speaker": "A"
+          },
+          {
+            "text": "to",
+            "start": 23800,
+            "end": 23960,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "know",
+            "start": 23960,
+            "end": 24080,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "the",
+            "start": 24080,
+            "end": 24200,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "rate",
+            "start": 24200,
+            "end": 24400,
+            "confidence": 0.98291016,
+            "speaker": "A"
+          },
+          {
+            "text": "on",
+            "start": 24400,
+            "end": 24600,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "a",
+            "start": 24600,
+            "end": 24720,
+            "confidence": 0.9921875,
+            "speaker": "A"
+          },
+          {
+            "text": "30",
+            "start": 24720,
+            "end": 24880,
+            "confidence": 0.99951,
+            "speaker": "A"
+          },
+          {
+            "text": "year",
+            "start": 24880,
+            "end": 25120,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "fix",
+            "start": 25120,
+            "end": 25480,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "and",
+            "start": 25480,
+            "end": 25720,
+            "confidence": 0.9892578,
+            "speaker": "A"
+          },
+          {
+            "text": "a",
+            "start": 25720,
+            "end": 25880,
+            "confidence": 0.98583984,
+            "speaker": "A"
+          },
+          {
+            "text": "15",
+            "start": 25880,
+            "end": 26120,
+            "confidence": 0.99951,
+            "speaker": "A"
+          },
+          {
+            "text": "year",
+            "start": 26120,
+            "end": 26400,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "fix",
+            "start": 26400,
+            "end": 26680,
+            "confidence": 0.99975586,
+            "speaker": "A"
+          },
+          {
+            "text": "and",
+            "start": 26680,
+            "end": 26840,
+            "confidence": 0.95947266,
+            "speaker": "A"
+          },
+          {
+            "text": "a",
+            "start": 26840,
+            "end": 26960,
+            "confidence": 0.9863281,
+            "speaker": "A"
+          },
+          {
+            "text": "20",
+            "start": 26960,
+            "end": 27120,
+            "confidence": 0.99902,
+            "speaker": "A"
+          },
+          {
+            "text": "year",
+            "start": 27120,
+            "end": 27360,
+            "confidence": 0.9980469,
+            "speaker": "A"
+          },
+          {
+            "text": "fix.",
+            "start": 27360,
+            "end": 27760,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "Give",
+            "start": 27840,
+            "end": 28120,
+            "confidence": 0.9790039,
+            "speaker": "A"
+          },
+          {
+            "text": "me",
+            "start": 28120,
+            "end": 28280,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "those",
+            "start": 28280,
+            "end": 28480,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "incrementally.",
+            "start": 28480,
+            "end": 29160,
+            "confidence": 0.9970703,
+            "speaker": "A"
+          },
+          {
+            "text": "Up,",
+            "start": 29160,
+            "end": 29440,
+            "confidence": 0.99365234,
+            "speaker": "A"
+          },
+          {
+            "text": "down,",
+            "start": 29440,
+            "end": 29720,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "left",
+            "start": 29720,
+            "end": 29960,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "and",
+            "start": 29960,
+            "end": 30120,
+            "confidence": 0.99902344,
+            "speaker": "A"
+          },
+          {
+            "text": "right.",
+            "start": 30120,
+            "end": 30400,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "Then",
+            "start": 30780,
+            "end": 30980,
+            "confidence": 0.9941406,
+            "speaker": "A"
+          },
+          {
+            "text": "email",
+            "start": 30980,
+            "end": 31340,
+            "confidence": 0.9995117,
+            "speaker": "A"
+          },
+          {
+            "text": "me",
+            "start": 31340,
+            "end": 31620,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "a",
+            "start": 31620,
+            "end": 31780,
+            "confidence": 1,
+            "speaker": "A"
+          },
+          {
+            "text": "confirmation.",
+            "start": 31780,
+            "end": 32460,
+            "confidence": 0.9831543,
+            "speaker": "A"
+          }
+        ]
+      }
+    ],
+    "entities": [
+      {
+        "entity_type": "person_name",
+        "text": "Tony",
+        "start": 6000,
+        "end": 6360
+      },
+      {
+        "entity_type": "person_name",
+        "text": "David",
+        "start": 6560,
+        "end": 6960
+      },
+      {
+        "entity_type": "time",
+        "text": "10:30 in the afternoon",
+        "start": 15640,
+        "end": 17760
+      },
+      {
+        "entity_type": "organization",
+        "text": "Google",
+        "start": 20120,
+        "end": 20480
+      },
+      {
+        "entity_type": "duration",
+        "text": "30 year",
+        "start": 24720,
+        "end": 25120
+      },
+      {
+        "entity_type": "duration",
+        "text": "15 year",
+        "start": 25880,
+        "end": 26400
+      },
+      {
+        "entity_type": "duration",
+        "text": "20 year",
+        "start": 26960,
+        "end": 27360
+      }
+    ],
+    "sentiment": [
+      {
+        "sentiment": "NEUTRAL",
+        "speaker": "A",
+        "text": "Hi Tony, it's David.",
+        "start": 5840,
+        "end": 6960,
+        "confidence": 0.83472896
+      },
+      {
+        "sentiment": "NEUTRAL",
+        "speaker": "A",
+        "text": "Just checking on you to see how everything went.",
+        "start": 7600,
+        "end": 10400,
+        "confidence": 0.8284697
+      },
+      {
+        "sentiment": "NEUTRAL",
+        "speaker": "A",
+        "text": "Please make sure we have a scheduled appointment tomorrow at 10:30 in the afternoon.",
+        "start": 11200,
+        "end": 17760,
+        "confidence": 0.7448758
+      },
+      {
+        "sentiment": "NEUTRAL",
+        "speaker": "A",
+        "text": "Just send me a Google Calendar link and we'll.",
+        "start": 19280,
+        "end": 21480,
+        "confidence": 0.8094235
+      },
+      {
+        "sentiment": "NEUTRAL",
+        "speaker": "A",
+        "text": "We'll take care of that.",
+        "start": 21480,
+        "end": 22480,
+        "confidence": 0.57949847
+      },
+      {
+        "sentiment": "NEUTRAL",
+        "speaker": "A",
+        "text": "And also I want to know the rate on a 30 year fix and a 15 year fix and a 20 year fix.",
+        "start": 22560,
+        "end": 27760,
+        "confidence": 0.83039844
+      },
+      {
+        "sentiment": "NEUTRAL",
+        "speaker": "A",
+        "text": "Give me those incrementally.",
+        "start": 27840,
+        "end": 29160,
+        "confidence": 0.79309726
+      },
+      {
+        "sentiment": "NEUTRAL",
+        "speaker": "A",
+        "text": "Up, down, left and right.",
+        "start": 29160,
+        "end": 30400,
+        "confidence": 0.72180605
+      },
+      {
+        "sentiment": "NEUTRAL",
+        "speaker": "A",
+        "text": "Then email me a confirmation.",
+        "start": 30780,
+        "end": 32460,
+        "confidence": 0.84417015
+      }
+    ],
+    "chapters": [
+      {
+        "summary": "David: Make sure we have a scheduled appointment tomorrow at 10:30 in the afternoon. Also want to know the rate on a 30 year fix and a 15 year fix. Give me those incrementally. Then email me a confirmation.",
+        "headline": "David: I want to know the rate on a 30 year fix",
+        "gist": "David on the Fed's Rate Fixations",
+        "start": 5840,
+        "end": 32460
+      }
+    ],
+    "completedAt": "2025-09-13T18:50:33.155Z",
+    "insights": [
+      "😐 Neutral conversation tone",
+      "📚 1 main discussion points identified",
+      "📅 Follow-up appointment discussed",
+      "✉️ Information to be sent via email",
+      "💰 Financial details discussed"
+    ]
+  }
+}

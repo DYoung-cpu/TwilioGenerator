@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced Twilio Call Monitor - LendWise Mortgage</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>📞</text></svg>" />
     <style>
         * {
             margin: 0;
@@ -370,7 +371,11 @@
                     </div>
                     <div class="input-group">
                         <label>Customer Phone</label>
-                        <input type="tel" id="customerPhone" placeholder="+1 (XXX) XXX-XXXX">
+                        <input type="tel" id="customerPhone" placeholder="(555) 123-4567">
+                    </div>
+                    <div class="input-group">
+                        <label>Customer Email</label>
+                        <input type="email" id="customerEmail" placeholder="customer@example.com">
                     </div>
                     <button class="btn-primary" id="callBtn" onclick="initiateCall()">
                         Start Call
@@ -383,9 +388,6 @@
                     <div class="recording-player">
                         <h3>📼 Call Recording</h3>
                         <audio id="audioPlayer" controls></audio>
-                        <button class="btn-primary" id="transcribeBtn" onclick="manualTranscribe()" style="margin-top: 10px;">
-                            📝 Transcribe Recording
-                        </button>
                         <div class="transcription-status" id="transcriptionStatus" style="display: none;">
                             <span>⏳ Waiting for transcription...</span>
                         </div>
@@ -393,7 +395,30 @@
                 </div>
 
                 <div id="transcriptionSection" style="display: none;">
-                    <h3 style="margin-top: 20px;">📝 Live Transcription</h3>
+                    <h3 style="margin-top: 20px;">📝 Call Transcription & Details</h3>
+
+                    <!-- Call Details Panel -->
+                    <div id="callDetailsPanel" style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 10px 0;">
+                        <h4 style="margin-bottom: 10px; color: #333;">📞 Call Information</h4>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px;">
+                            <div>
+                                <strong>Customer:</strong> <span id="detailCustomerName">-</span><br>
+                                <strong>Phone:</strong> <span id="detailCustomerPhone">-</span><br>
+                                <strong>Email:</strong> <span id="detailCustomerEmail">-</span>
+                            </div>
+                            <div>
+                                <strong>Call Time:</strong> <span id="detailCallTime">-</span><br>
+                                <strong>Duration:</strong> <span id="detailDuration">-</span><br>
+                                <strong>Status:</strong> <span id="detailStatus">-</span>
+                            </div>
+                        </div>
+                        <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #dee2e6;">
+                            <strong>From (Twilio):</strong> <span id="detailFromNumber">-</span><br>
+                            <strong>To (Loan Officer):</strong> <span id="detailToNumber">-</span>
+                        </div>
+                    </div>
+
+                    <!-- Transcription Box -->
                     <div class="transcription-box" id="transcriptionBox">
                         <div style="color: #999; text-align: center; padding: 50px;">
                             Transcription will appear here...
@@ -423,8 +448,9 @@
         </div>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        const API_BASE = 'http://localhost:3003/api';
+        const API_BASE = 'http://localhost:3004/api';
         let currentCallSid = null;
         let statusPollInterval = null;
         let callTimer = null;
@@ -437,14 +463,109 @@
             setInterval(updateStats, 5000);
         });
 
+        // Store current call data
+        let currentCallData = {};
+
+        // Toggle transcript visibility
+        async function toggleTranscript(recordingSid) {
+            const transcriptDiv = document.getElementById(`transcript-${recordingSid}`);
+            const toggleIcon = document.getElementById(`toggle-${recordingSid}`);
+
+            if (transcriptDiv.style.display === 'none') {
+                transcriptDiv.style.display = 'block';
+                toggleIcon.textContent = '▲';
+
+                // Load transcript if not already loaded (check with data attribute instead of HTML comparison)
+                if (!transcriptDiv.dataset.loaded) {
+                    try {
+                        console.log('Fetching transcript for:', recordingSid);
+                        // Get the full transcription data using the correct endpoint
+                        const response = await fetch(`${API_BASE}/transcription/${recordingSid}/full`);
+                        console.log('Response status:', response.status);
+                        const data = await response.json();
+                        console.log('Transcript data:', data);
+
+                        if (data.success && data.hasTranscription && data.transcription) {
+                            const transcript = data.transcription;
+                            let transcriptHTML = '<div style="padding: 10px; background: #2a2a2a; border-radius: 5px;">';
+
+                            // Show insights if available
+                            if (transcript.insights && transcript.insights.length > 0) {
+                                transcriptHTML += '<div style="margin-bottom: 15px;">';
+                                transcriptHTML += '<strong style="color: #22c55e;">AI Insights:</strong>';
+                                transcriptHTML += '<ul style="margin: 5px 0; padding-left: 20px;">';
+                                transcript.insights.forEach(insight => {
+                                    transcriptHTML += `<li style="color: #94a3b8; margin: 5px 0;">${insight}</li>`;
+                                });
+                                transcriptHTML += '</ul>';
+                                transcriptHTML += '</div>';
+                            }
+
+                            // Show full transcript text
+                            if (transcript.text) {
+                                transcriptHTML += '<div style="margin-bottom: 15px;">';
+                                transcriptHTML += '<strong style="color: #22c55e;">Full Transcript:</strong>';
+                                transcriptHTML += `<p style="color: #cbd5e1; margin: 10px 0; line-height: 1.6;">${transcript.text}</p>`;
+                                transcriptHTML += '</div>';
+                            }
+
+                            // Show speaker breakdown if available
+                            if (transcript.utterances && transcript.utterances.length > 0) {
+                                transcriptHTML += '<div>';
+                                transcriptHTML += '<strong style="color: #22c55e;">Speaker Breakdown:</strong>';
+                                transcriptHTML += '<div style="margin-top: 10px;">';
+                                transcript.utterances.forEach(u => {
+                                    const speaker = u.speaker ? `Speaker ${u.speaker}` : 'Speaker';
+                                    transcriptHTML += `
+                                        <div style="margin-bottom: 12px; padding: 8px; background: #1e1e1e; border-radius: 4px;">
+                                            <strong style="color: #667eea;">${speaker}:</strong>
+                                            <span style="color: #cbd5e1;">${u.text}</span>
+                                        </div>
+                                    `;
+                                });
+                                transcriptHTML += '</div>';
+                                transcriptHTML += '</div>';
+                            }
+
+                            transcriptHTML += '</div>';
+                            transcriptDiv.innerHTML = transcriptHTML;
+                            transcriptDiv.dataset.loaded = 'true';
+                        } else {
+                            transcriptDiv.innerHTML = '<div style="color: #999;">No transcript available</div>';
+                            transcriptDiv.dataset.loaded = 'true';
+                        }
+                    } catch (error) {
+                        console.error('Error loading transcript:', error);
+                        transcriptDiv.innerHTML = '<div style="color: #f56565;">Error loading transcript</div>';
+                        transcriptDiv.dataset.loaded = 'error';
+                    }
+                }
+            } else {
+                transcriptDiv.style.display = 'none';
+                toggleIcon.textContent = '▼';
+            }
+        }
+
         async function initiateCall() {
             const customerName = document.getElementById('customerName').value;
             const customerPhone = document.getElementById('customerPhone').value;
+            const customerEmail = document.getElementById('customerEmail').value;
 
             if (!customerName || !customerPhone) {
                 alert('Please enter customer name and phone number');
                 return;
             }
+
+            // Format phone number for Twilio
+            const formattedPhone = formatPhoneForTwilio(customerPhone);
+
+            // Store call data for later display
+            currentCallData = {
+                customerName,
+                customerPhone: formattedPhone,
+                customerEmail: customerEmail || 'Not provided',
+                startTime: new Date()
+            };
 
             const callBtn = document.getElementById('callBtn');
             callBtn.disabled = true;
@@ -454,7 +575,11 @@
                 const response = await fetch(`${API_BASE}/twilio/call/tony-nasim`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ customerName, customerPhone })
+                    body: JSON.stringify({
+                        customerName,
+                        customerPhone: formattedPhone,
+                        customerEmail
+                    })
                 });
 
                 const data = await response.json();
@@ -540,9 +665,22 @@
                                data.status === 'completed' ? 'completed' :
                                data.status === 'failed' || data.status === 'busy' || data.status === 'no-answer' ? 'failed' : '';
 
+            // Update call details panel
+            if (currentCallData.customerName) {
+                document.getElementById('detailCustomerName').textContent = currentCallData.customerName;
+                document.getElementById('detailCustomerPhone').textContent = currentCallData.customerPhone;
+                document.getElementById('detailCustomerEmail').textContent = currentCallData.customerEmail;
+                document.getElementById('detailCallTime').textContent = currentCallData.startTime.toLocaleTimeString();
+                document.getElementById('detailDuration').textContent = data.duration ? `${data.duration} seconds` : 'In progress';
+                document.getElementById('detailStatus').textContent = status;
+                document.getElementById('detailFromNumber').textContent = data.from;
+                document.getElementById('detailToNumber').textContent = data.to;
+            }
+
             let html = `
                 <div class="call-status ${statusClass ? 'status-' + statusClass : ''}">
                     <h3>Current Call</h3>
+                    <p><strong>Customer:</strong> ${currentCallData.customerName || 'Unknown'}</p>
                     <p><strong>Status:</strong> ${status}</p>
                     <p><strong>From:</strong> ${data.from}</p>
                     <p><strong>To:</strong> ${data.to}</p>
@@ -590,6 +728,12 @@
         }
 
         async function startTranscription(recording) {
+            // If no recording passed, use current recording SID
+            if (!recording) {
+                recording = { sid: currentRecordingSid };
+            }
+            console.log('Starting manual transcription for:', recording.sid);
+
             document.getElementById('transcriptionSection').style.display = 'block';
             document.getElementById('transcriptionStatus').style.display = 'block';
             document.getElementById('transcriptionStatus').className = 'transcription-status processing';
@@ -680,6 +824,104 @@
             return `${minutes}:${secs.toString().padStart(2, '0')}`;
         }
 
+        async function loadExistingTranscription(recordingSid) {
+            try {
+                const response = await fetch(`${API_BASE}/transcription/${recordingSid}/full`);
+                const data = await response.json();
+
+                if (data.success && data.hasTranscription) {
+                    const transcription = data.transcription;
+
+                    // Hide the transcription status since we're showing the actual transcription
+                    document.getElementById('transcriptionStatus').style.display = 'none';
+                    document.getElementById('transcriptionSection').style.display = 'block';
+
+                    // Display transcript
+                    if (transcription.utterances && transcription.utterances.length > 0) {
+                        displayRealTranscription(transcription.utterances, transcription.entities);
+                    } else if (transcription.text) {
+                        const transcriptionBox = document.getElementById('transcriptionBox');
+                        transcriptionBox.innerHTML = `<div class="transcription-line">${transcription.text}</div>`;
+                    }
+
+                    // Show AI-processed data if available
+                    if (transcription.processedData) {
+                        displayAIExtractedData(transcription.processedData);
+                    }
+                } else {
+                    console.log('No transcription found for:', recordingSid);
+                }
+            } catch (error) {
+                console.error('Error loading existing transcription:', error);
+            }
+        }
+
+        function displayAIExtractedData(processedData) {
+            const { extracted_data, action_items, sentiment_analysis } = processedData;
+
+            // Create AI insights section
+            let insightsHtml = '<div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-top: 20px;"><h3>🤖 AI Analysis</h3>';
+
+            // Borrower info
+            if (extracted_data?.borrower_information) {
+                const borrower = extracted_data.borrower_information;
+                insightsHtml += '<div style="margin: 10px 0;"><strong>Borrower:</strong> ';
+                insightsHtml += `${borrower.full_name || 'Unknown'} | ${borrower.phone_number || 'No phone'} | ${borrower.email_address || 'No email'}</div>`;
+            }
+
+            // Loan details
+            if (extracted_data?.loan_details) {
+                const loan = extracted_data.loan_details;
+                insightsHtml += '<div style="margin: 10px 0;"><strong>Loan:</strong> ';
+                insightsHtml += `${loan.loan_purpose || 'Unknown purpose'} | Amount: ${loan.requested_loan_amount || 'Not specified'}</div>`;
+            }
+
+            // Financial info
+            if (extracted_data?.financial_information) {
+                const financial = extracted_data.financial_information;
+                insightsHtml += '<div style="margin: 10px 0;"><strong>Financial:</strong> ';
+                insightsHtml += `Credit: ${financial.credit_score || 'Unknown'} | Income: ${financial.annual_income || 'Not provided'}</div>`;
+            }
+
+            // Sentiment
+            if (sentiment_analysis) {
+                insightsHtml += '<div style="margin: 10px 0;"><strong>Sentiment:</strong> ';
+                insightsHtml += `<span style="padding: 3px 8px; border-radius: 4px; background: ${sentiment_analysis.sentiment === 'positive' ? '#d4ffd4' : sentiment_analysis.sentiment === 'negative' ? '#ffd4d4' : '#ffffd4'}">${sentiment_analysis.sentiment || 'neutral'}</span> `;
+                insightsHtml += `| Urgency: <span style="color: ${sentiment_analysis.urgency === 'high' ? 'red' : sentiment_analysis.urgency === 'medium' ? 'orange' : 'green'}">${sentiment_analysis.urgency || 'normal'}</span></div>`;
+            }
+
+            // Action items
+            if (action_items && action_items.length > 0) {
+                insightsHtml += '<div style="margin: 15px 0;"><strong>📋 Action Items:</strong><ul style="margin: 5px 0;">';
+                action_items.forEach(item => {
+                    const priorityColor = item.priority === 'high' ? 'red' : item.priority === 'medium' ? 'orange' : 'green';
+                    insightsHtml += `<li style="margin: 5px 0;"><span style="color: ${priorityColor};">●</span> ${item.task}</li>`;
+                });
+                insightsHtml += '</ul></div>';
+            }
+
+            // Email status
+            if (processedData.call_info) {
+                insightsHtml += '<div style="margin: 10px 0; color: green;">📧 Email sent to loan officer</div>';
+            }
+
+            insightsHtml += '</div>';
+
+            // Add to page
+            const aiInsights = document.getElementById('aiInsights');
+            if (aiInsights) {
+                aiInsights.style.display = 'block';
+                document.getElementById('insightText').innerHTML = insightsHtml;
+            } else {
+                // Create the element if it doesn't exist
+                const transcriptionSection = document.getElementById('transcriptionSection');
+                const aiDiv = document.createElement('div');
+                aiDiv.id = 'aiInsights';
+                aiDiv.innerHTML = `<div id="insightText">${insightsHtml}</div>`;
+                transcriptionSection.appendChild(aiDiv);
+            }
+        }
+
         function simulateTranscription() {
             const transcriptionBox = document.getElementById('transcriptionBox');
 
@@ -733,18 +975,56 @@
                 const data = await response.json();
 
                 if (data.success && data.recordings.length > 0) {
+                    // Store recordings data globally for use in playRecording
+                    window.recordingsData = {};
+                    data.recordings.forEach(rec => {
+                        window.recordingsData[rec.sid] = rec;
+                    });
+
                     const historyHtml = data.recordings.map(rec => {
+                        console.log('Recording data:', rec); // Debug log
                         const date = new Date(rec.dateCreated);
                         const timeStr = date.toLocaleTimeString();
+                        // Fix customer name display - show actual name if available
+                        const customerName = rec.customerName && rec.customerName !== 'Unknown' && rec.customerName !== '' ? rec.customerName : '';
+                        const displayName = customerName || 'Customer';
+                        const loanOfficer = rec.loanOfficer || 'Tony Nasim';
+
+                        // Add status badges
+                        let badges = '';
+                        if (rec.hasTranscription) badges += '<span style="background: #d4ffd4; color: #008800; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 5px;">✅ Transcribed</span>';
+                        if (rec.emailSent) badges += '<span style="background: #d4d4ff; color: #000088; padding: 2px 6px; border-radius: 3px; font-size: 11px; margin-right: 5px;">📧 Email Sent</span>';
+                        if (rec.processedData) badges += '<span style="background: #ffd4ff; color: #880088; padding: 2px 6px; border-radius: 3px; font-size: 11px;">🤖 AI Processed</span>';
+
+                        // Add expandable transcript functionality
+                        const itemId = `item-${rec.sid}`;
+                        const transcriptId = `transcript-${rec.sid}`;
 
                         return `
-                            <div class="history-item" onclick="playRecording('${rec.sid}')">
-                                <div class="history-header">
-                                    <strong>${rec.callDetails?.from || 'Unknown'} → ${rec.callDetails?.to || 'Unknown'}</strong>
-                                    <span class="history-duration">${rec.duration}s</span>
+                            <div class="history-item" id="${itemId}">
+                                <div onclick="playRecording('${rec.sid}')" style="cursor: pointer;">
+                                    <div class="history-header">
+                                        <strong>${displayName} → ${loanOfficer}</strong>
+                                        <span class="history-duration">${rec.duration}s</span>
+                                    </div>
+                                    <div class="history-time">${timeStr}</div>
+                                    <div style="font-size: 12px; color: #888;">
+                                        ${rec.customerPhone || rec.callDetails?.from || 'No phone'} ${rec.customerEmail ? '• ' + rec.customerEmail : ''}
+                                    </div>
+                                    <div style="margin-top: 5px;">
+                                        ${badges || (rec.status === 'completed' ? '<span style="color: #666; font-size: 11px;">🎧 Recording Ready</span>' : '')}
+                                    </div>
                                 </div>
-                                <div class="history-time">${timeStr}</div>
-                                ${rec.status === 'completed' ? '<span style="color: green;">✅ Recording available</span>' : ''}
+                                ${rec.hasTranscription ? `
+                                    <div style="margin-top: 8px; border-top: 1px solid #eee; padding-top: 8px;">
+                                        <button onclick="event.stopPropagation(); toggleTranscript('${rec.sid}')" style="background: #667eea; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px;">
+                                            <span id="toggle-${rec.sid}">▼</span> View Transcript
+                                        </button>
+                                        <div id="${transcriptId}" style="display: none; margin-top: 10px; padding: 10px; background: #f5f5f5; border-radius: 4px; max-height: 200px; overflow-y: auto; font-size: 12px;">
+                                            <div style="color: #999;">Loading transcript...</div>
+                                        </div>
+                                    </div>
+                                ` : ''}
                             </div>
                         `;
                     }).join('');
@@ -765,9 +1045,40 @@
             audioPlayer.src = `${API_BASE}/twilio/recording/${recordingSid}/stream`;
             audioPlayer.play();
 
-            // Reset transcription display
-            document.getElementById('transcriptionStatus').style.display = 'none';
-            document.getElementById('transcriptionSection').style.display = 'none';
+            // Populate call details if data is available
+            if (window.recordingsData && window.recordingsData[recordingSid]) {
+                const rec = window.recordingsData[recordingSid];
+                const date = new Date(rec.dateCreated);
+
+                // Update call details
+                updateCallDisplay(
+                    rec.customerName || 'Unknown',
+                    rec.customerPhone || rec.callDetails?.from || 'Unknown',
+                    rec.customerEmail || 'Not provided',
+                    date,
+                    rec.callDetails?.from || process.env.TWILIO_PHONE_NUMBER || 'Unknown',
+                    rec.callDetails?.to || rec.loanOfficerPhone || 'Unknown',
+                    rec.duration
+                );
+
+                console.log('Recording hasTranscription:', rec.hasTranscription); // Debug log
+
+                // Automatically load transcription if available
+                if (rec.hasTranscription) {
+                    console.log('Loading existing transcription for:', recordingSid);
+                    loadExistingTranscription(recordingSid);
+                    // Hide transcribe button since we have transcription
+                    document.getElementById('transcriptionStatus').style.display = 'none';
+                } else {
+                    // Show option to transcribe only if really needed
+                    console.log('No transcription available for:', recordingSid);
+                    document.getElementById('transcriptionStatus').style.display = 'block';
+                    document.getElementById('transcriptionStatus').className = 'transcription-status';
+                    document.getElementById('transcriptionStatus').innerHTML =
+                        '<span>⏳ Transcription will begin automatically when recording is complete</span>';
+                    document.getElementById('transcriptionSection').style.display = 'none';
+                }
+            }
 
             // Scroll to player
             recordingSection.scrollIntoView({ behavior: 'smooth' });
@@ -794,19 +1105,106 @@
             }
         }
 
-        // Format phone number as user types
+        // Format phone number as user types - improved version
         document.getElementById('customerPhone').addEventListener('input', function(e) {
+            // Get just the numbers
             let value = e.target.value.replace(/\D/g, '');
+
+            // Limit to 10 digits
+            value = value.substring(0, 10);
+
+            // Format the number
+            let formatted = '';
             if (value.length > 0) {
                 if (value.length <= 3) {
-                    value = `+1 (${value}`;
+                    formatted = value;
                 } else if (value.length <= 6) {
-                    value = `+1 (${value.slice(0, 3)}) ${value.slice(3)}`;
+                    formatted = `(${value.slice(0, 3)}) ${value.slice(3)}`;
                 } else {
-                    value = `+1 (${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6, 10)}`;
+                    formatted = `(${value.slice(0, 3)}) ${value.slice(3, 6)}-${value.slice(6)}`;
                 }
             }
-            e.target.value = value;
+
+            e.target.value = formatted;
+        });
+
+        // Clean up phone number before sending (add +1 for US numbers)
+        function formatPhoneForTwilio(phone) {
+            const cleaned = phone.replace(/\D/g, '');
+            if (cleaned.length === 10) {
+                return '+1' + cleaned;
+            }
+            return '+' + cleaned;
+        }
+
+        // Socket.IO connection for real-time updates - optional, don't let it break the app
+        let socket;
+        try {
+            socket = io();
+
+            socket.on('connect', () => {
+                console.log('Connected to server for real-time updates');
+            });
+
+            socket.on('connect_error', (error) => {
+                console.warn('Socket.IO connection error (non-critical):', error.message);
+            });
+        } catch (e) {
+            console.warn('Socket.IO not available, real-time updates disabled');
+        }
+
+        // Listen for transcription ready events (if socket is available)
+        if (socket) {
+            socket.on('transcription-ready', (data) => {
+                console.log('Transcription ready for:', data.recordingSid);
+
+                // If this is the current recording, load the transcription
+                if (data.recordingSid === currentRecordingSid) {
+                    loadExistingTranscription(data.recordingSid);
+                }
+
+                // Refresh call history to show updated status
+                loadCallHistory();
+            });
+
+            // Listen for AI processing complete
+            socket.on('ai-processing-complete', (data) => {
+                console.log('AI processing complete for:', data.recordingSid);
+
+                // If this is the current recording, reload to show AI data
+                if (data.recordingSid === currentRecordingSid) {
+                    loadExistingTranscription(data.recordingSid);
+                }
+
+                // Refresh call history
+                loadCallHistory();
+            });
+
+            // Listen for email sent notifications
+            socket.on('email-sent', (data) => {
+                console.log('Email sent for:', data.recordingSid);
+
+                // Show notification
+                const notification = document.createElement('div');
+                notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 15px; border-radius: 8px; z-index: 1000; animation: slideIn 0.3s;';
+                notification.innerHTML = '📧 Email sent to loan officer!';
+                document.body.appendChild(notification);
+
+                setTimeout(() => notification.remove(), 5000);
+
+                // Refresh call history
+                loadCallHistory();
+            });
+        }
+
+        // Load call history and stats on page load
+        window.addEventListener('load', function() {
+            loadCallHistory();
+            updateStats();
+
+            // Refresh call history every 30 seconds
+            setInterval(loadCallHistory, 30000);
+            setInterval(updateStats, 30000);
         });
     </script>
 </body>
