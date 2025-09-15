@@ -24,9 +24,11 @@ async function saveTranscriptions() {
 }
 
 // Auto-transcribe when recording is ready
-async function autoTranscribe(recordingSid, recordingUrl) {
+async function autoTranscribe(recordingSid, recordingUrl, callSid, customerData = {}) {
   try {
     console.log(`🎙️ Auto-transcribing recording ${recordingSid}`);
+    console.log(`   Call SID: ${callSid || 'Not provided'}`);
+    console.log(`   Customer: ${customerData.customerName || 'Unknown'}`);
 
     const ASSEMBLYAI_API_KEY = process.env.ASSEMBLYAI_API_KEY;
 
@@ -116,12 +118,17 @@ async function autoTranscribe(recordingSid, recordingUrl) {
 
       // Save to Supabase with proper field mapping
       await transcriptionService.saveTranscription({
-        callSid: recordingSid,  // Using recordingSid as callSid since we don't have actual callSid
+        callSid: callSid || recordingSid,  // Use actual callSid if provided
         recordingSid: recordingSid,
         transcript: transcript.text,  // Save the text as transcript
         transcriptStatus: 'completed',
         status: 'completed',
-        duration: transcript.audio_duration
+        duration: transcript.audio_duration,
+        customerName: customerData.customerName || null,
+        customerEmail: customerData.customerEmail || null,
+        customerPhone: customerData.customerPhone || null,
+        fromNumber: customerData.customerPhone || null,
+        toNumber: customerData.loanOfficerPhone || null
       });
 
       console.log(`✅ Transcription complete for ${recordingSid}`);
@@ -143,15 +150,17 @@ async function autoTranscribe(recordingSid, recordingUrl) {
 
           // Update Supabase with processed data
           await transcriptionService.saveTranscription({
-            callSid: recordingSid,
+            callSid: callSid || recordingSid,
             recordingSid: recordingSid,
             transcript: transcript.text,
             transcriptStatus: 'completed',
             status: 'completed',
             duration: transcript.audio_duration,
-            customerName: processedData.extracted_data?.borrower_information?.full_name || null,
-            customerEmail: processedData.extracted_data?.borrower_information?.email_address || null,
-            customerPhone: processedData.extracted_data?.borrower_information?.phone_number || null
+            customerName: processedData.extracted_data?.borrower_information?.full_name || customerData.customerName || null,
+            customerEmail: processedData.extracted_data?.borrower_information?.email_address || customerData.customerEmail || null,
+            customerPhone: processedData.extracted_data?.borrower_information?.phone_number || customerData.customerPhone || null,
+            fromNumber: customerData.customerPhone || null,
+            toNumber: customerData.loanOfficerPhone || null
           });
 
           // Send email to loan officer

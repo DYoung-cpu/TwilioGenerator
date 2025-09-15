@@ -270,9 +270,13 @@ router.post('/recording-status', async (req, res) => {
 
   // Auto-transcribe when recording is completed
   if (RecordingStatus === 'completed' && RecordingUrl) {
+    // Get customer data from callDataStore using the CallSid
+    const customerData = callDataStore[CallSid] || {};
+    console.log(`   Customer Data: ${customerData.customerName || 'Not found'}`);
+
     console.log(`🚀 Starting auto-transcription for ${RecordingSid}`);
-    // Start transcription in background (don't wait)
-    autoTranscribe(RecordingSid, RecordingUrl).catch(err => {
+    // Pass customer data to auto-transcribe
+    autoTranscribe(RecordingSid, RecordingUrl, CallSid, customerData).catch(err => {
       console.error('Auto-transcribe failed:', err);
     });
   }
